@@ -635,10 +635,15 @@ class PlotOcp:
 
     def _add_bounds_to_plot(self, i, nlp, variable, ctr, ax, mapping_to_first_index):
         """Add bounds to a specific plot"""
-        if nlp.plot[variable].bounds.type == InterpolationType.EACH_FRAME:
+        if nlp.plot[variable].bounds.type in [InterpolationType.EACH_FRAME, InterpolationType.ALL_POINTS]:
             ns = nlp.plot[variable].bounds.min.shape[1] - 1
         else:
             ns = nlp.ns
+        t = (
+            [np.linspace(0, ns, ns + 1) for i in range(len(self.t))]
+            if nlp.plot[variable].bounds.type == InterpolationType.ALL_POINTS
+            else self.t
+        )
 
         # TODO: introduce repeat for the COLLOCATIONS min/max_bounds only for states graphs.
         # For now the plots in COLLOCATIONS with LINEAR are not giving the right values
@@ -652,8 +657,8 @@ class PlotOcp:
             bounds_min = np.concatenate((bounds_min, [bounds_min[-1]]))
             bounds_max = np.concatenate((bounds_max, [bounds_max[-1]]))
 
-        self.plots_bounds.append([ax.step(self.t[i], bounds_min, where="post", **self.plot_options["bounds"]), i])
-        self.plots_bounds.append([ax.step(self.t[i], bounds_max, where="post", **self.plot_options["bounds"]), i])
+        self.plots_bounds.append([ax.step(t[i], bounds_min, where="post", **self.plot_options["bounds"]), i])
+        self.plots_bounds.append([ax.step(t[i], bounds_max, where="post", **self.plot_options["bounds"]), i])
 
     def _add_new_axis(self, variable: Str, nb: Int, n_rows: Int, n_cols: Int):
         """
